@@ -36,9 +36,9 @@ def get_confidence_metrics(
   confidence_metrics['plddt'] = confidence.compute_plddt(
       prediction_result['predicted_lddt']['logits'])
   if 'predicted_aligned_error' in prediction_result:
-    confidence_metrics.update(confidence.compute_predicted_aligned_error(
+    confidence_metrics['pae'] = confidence.compute_predicted_aligned_error(
         logits=prediction_result['predicted_aligned_error']['logits'],
-        breaks=prediction_result['predicted_aligned_error']['breaks']))
+        breaks=prediction_result['predicted_aligned_error']['breaks'])
     confidence_metrics['ptm'] = confidence.predicted_tm_score(
         logits=prediction_result['predicted_aligned_error']['logits'],
         breaks=prediction_result['predicted_aligned_error']['breaks'],
@@ -66,7 +66,8 @@ class RunModel:
 
   def __init__(self,
                config: ml_collections.ConfigDict,
-               params: Optional[Mapping[str, Mapping[str, np.ndarray]]] = None):
+               params: Optional[Mapping[str, Mapping[str, np.ndarray]]] = None,
+               return_representations: Optional[bool] = False):
     self.config = config
     self.params = params
     self.multimer_mode = config.model.global_config.multimer_mode
@@ -76,12 +77,14 @@ class RunModel:
         model = modules_multimer.AlphaFold(self.config.model)
         return model(
             batch,
+            return_representations=return_representations,
             is_training=False)
     else:
       def _forward_fn(batch):
         model = modules.AlphaFold(self.config.model)
         return model(
             batch,
+            return_representations=return_representations,
             is_training=False,
             compute_loss=False,
             ensemble_representations=True)

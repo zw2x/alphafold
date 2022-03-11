@@ -157,6 +157,7 @@ def predicted_tm_score(
   pair_mask = np.ones(shape=(num_res, num_res), dtype=bool)
   if interface:
     pair_mask *= asym_id[:, None] != asym_id[None, :]
+    residue_weights *= asym_id != 0.
 
   predicted_tm_term *= pair_mask
 
